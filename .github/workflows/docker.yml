@@ -34,10 +34,11 @@ jobs:
           docker build \
             --cache-from $IMAGE_NAME:latest \
             -t $IMAGE_NAME:latest \
-            -t $IMAGE_NAME:${{ github.sha }} \
+            -t $IMAGE_NAME:$GITHUB_SHA \
             .
 
       # 4️⃣ Push both tags to GHCR
       - name: Push Docker image
         run: |
-          docker push $IMAGE_NAME:latest $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$GITHUB_SHA
