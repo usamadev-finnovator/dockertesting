@@ -1,14 +1,14 @@
-name: CI CD - Build & Auto Deploy to Windows VPS
+name: Build & Push Docker Image
 
 on:
   push:
     branches: [main]
 
 env:
-  IMAGE_NAME: ghcr.io/usamadev-finnovator/dockertesting
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     permissions:
@@ -16,9 +16,11 @@ jobs:
       packages: write
 
     steps:
-      - name: Checkout
+      # 1️⃣ Checkout the code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2️⃣ Login to GitHub Container Registry
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -26,20 +28,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & Push Image
+      # 3️⃣ Build the Docker image with cache and tags
+      - name: Build Docker image
         run: |
-          docker build -t $IMAGE_NAME:latest .
-          docker push $IMAGE_NAME:latest
+          docker build \
+            --cache-from $IMAGE_NAME:latest \
+            -t $IMAGE_NAME:latest \
+            -t $IMAGE_NAME:$GITHUB_SHA \
+            .
 
-      - name: Execute remote SSH commands using password
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          port: ${{ secrets.PORT }}
-          script: |
-            docker pull ghcr.io/usamadev-finnovator/dockertesting:latest
-            docker stop dockertesting-app || true
-            docker rm dockertesting-app || true
-            docker run -d --name dockertesting-app --restart always -p 3000:3000 ghcr.io/usamadev-finnovator/dockertesting:latest
+      # 4️⃣ Push both tags to GHCR
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:$GITHUB_SHA
