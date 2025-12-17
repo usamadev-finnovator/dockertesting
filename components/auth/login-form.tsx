@@ -136,7 +136,7 @@ export function LoginForm({
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Sign in</CardTitle>
           <CardDescription className="text-xl text-black dark:text-white">
-            Enter your Credential
+            Enter your Credential Esage
           </CardDescription>
         </CardHeader>
         <CardContent>
