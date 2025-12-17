@@ -2,10 +2,12 @@ name: Build & Push Docker Image
 
 on:
   push:
-    branches: [main]
+    branches:
+      - esage
 
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_TAG: esage
 
 jobs:
   build:
@@ -29,12 +31,11 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --cache-from $IMAGE_NAME:latest \
-            -t $IMAGE_NAME:latest \
-            -t $IMAGE_NAME:$GITHUB_SHA \
+            -t $IMAGE_NAME:$IMAGE_TAG \
+            -t $IMAGE_NAME:$IMAGE_TAG-${GITHUB_SHA} \
             .
 
       - name: Push Docker image
         run: |
-          docker push $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:$GITHUB_SHA
+          docker push $IMAGE_NAME:$IMAGE_TAG
+          docker push $IMAGE_NAME:$IMAGE_TAG-${GITHUB_SHA}

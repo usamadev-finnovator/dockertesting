@@ -1,0 +1,41 @@
+name: Build & Push Docker Image 
+
+on:
+  push:
+    branches:
+      - vps
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_TAG: vps 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $IMAGE_NAME:$IMAGE_TAG \
+            -t $IMAGE_NAME:$IMAGE_TAG-${GITHUB_SHA} \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:$IMAGE_TAG
+          docker push $IMAGE_NAME:$IMAGE_TAG-${GITHUB_SHA}
